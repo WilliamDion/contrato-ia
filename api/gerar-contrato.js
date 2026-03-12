@@ -7,7 +7,6 @@ import OpenAI from "openai";
 import PDFDocument from "pdfkit";
 
 const app = express();
-
 app.use(cors());
 app.use(express.json());
 
@@ -15,11 +14,10 @@ const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
-// 1. ROTA ESPECÍFICA PARA O CONTRATO (Mudei de "*" para "/gerar-contrato")
-app.post("/gerar-contrato", async (req, res) => {
+// Rota de contrato (mantendo seu prompt)
+app.post("/api/gerar-contrato", async (req, res) => {
   try {
     const { descricao } = req.body;
-
     const prompt = `Você é um advogado especialista em contratos no Brasil.
 
 Crie um contrato profissional, juridicamente válido, em português do Brasil.
@@ -70,7 +68,7 @@ Retorne SOMENTE o JSON:
 
   "campos": [{ "id": "...", "label": "..." }]
 
-}`;
+}`; // Seu prompt original aqui
 
     const completion = await openai.chat.completions.create({
       model: "gpt-4o-mini",
@@ -80,44 +78,30 @@ Retorne SOMENTE o JSON:
 
     res.json(JSON.parse(completion.choices[0].message.content));
   } catch (err) {
-    console.error(err);
     res.status(500).json({ error: "Erro ao gerar contrato" });
   }
 });
 
-// 2. ROTA DO PDF (Melhorada para rodar em Serverless)
-app.post("/gerar-pdf", async (req, res) => {
+// Rota de PDF (Corrigida para Buffer na Vercel)
+app.post("/api/gerar-pdf", (req, res) => {
   try {
     const { contrato } = req.body;
-
-    if (!contrato) {
-        return res.status(400).json({ error: "Conteúdo do contrato vazio" });
-    }
-
     const doc = new PDFDocument({ margin: 40 });
     let buffers = [];
-    
     doc.on("data", buffers.push.bind(buffers));
     doc.on("end", () => {
       let pdfData = Buffer.concat(buffers);
       res.writeHead(200, {
         "Content-Type": "application/pdf",
         "Content-Disposition": "attachment; filename=contrato.pdf",
-        "Content-Length": pdfData.length,
+        "Content-Length": pdfData.length
       });
       res.end(pdfData);
     });
-
-    doc.fontSize(12).text(contrato, {
-      align: "justify",
-      lineGap: 3,
-    });
-    
+    doc.fontSize(12).text(contrato);
     doc.end();
-
   } catch (err) {
-    console.error(err);
-    res.status(500).send("Erro ao gerar PDF");
+    res.status(500).json({ error: "Erro ao gerar PDF" });
   }
 });
 
