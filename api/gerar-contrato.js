@@ -96,4 +96,4 @@ app.post("/gerar-pdf", (req, res) => {
 
 });
 
-module.exports = app;
+export default app;
