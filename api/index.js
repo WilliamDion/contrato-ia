@@ -16,7 +16,7 @@ const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
-app.post("/gerar-contrato", async (req, res) => {
+app.post("api/gerar-contrato", async (req, res) => {
   try {
     const { descricao } = req.body;
 
@@ -61,7 +61,7 @@ Retorne SOMENTE o JSON:
   }
 });
 
-app.post("/gerar-pdf", (req, res) => {
+app.post("api/gerar-pdf", (req, res) => {
 
   try {
     const { contrato } = req.body;
