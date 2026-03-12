@@ -17,7 +17,7 @@ const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
-app.post("/gerar-contrato", async (req, res) => {
+app.post("*", async (req, res) => {
   try {
     const { descricao } = req.body;
 
