@@ -2,8 +2,8 @@
   "version": 2,
   "rewrites": [
     {
-      "source": "/api/(.*)",
-      "destination": "/api/index.js"
+      "source": "/api/gerar-contrato",
+      "destination": "/api/gerar-contrato.js"
     },
     {
       "source": "/(.*)",
