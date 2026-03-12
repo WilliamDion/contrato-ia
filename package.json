@@ -1,9 +1,12 @@
 {
+  "name": "contrato-ia",
+  "version": "1.0.0",
+  "type": "module",
   "dependencies": {
+    "express": "^4.21.0",
+    "openai": "^4.0.0",
     "cors": "^2.8.5",
-    "dotenv": "^17.2.3",
-    "express": "^5.2.1",
-    "openai": "^6.15.0",
-    "pdfkit": "^0.17.2"
+    "dotenv": "^16.0.0",
+    "pdfkit": "^0.13.0"
   }
 }
