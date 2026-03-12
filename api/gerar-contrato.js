@@ -82,27 +82,4 @@ Retorne SOMENTE o JSON:
   }
 });
 
-// Rota de PDF (Corrigida para Buffer na Vercel)
-app.post("/api/gerar-pdf", (req, res) => {
-  try {
-    const { contrato } = req.body;
-    const doc = new PDFDocument({ margin: 40 });
-    let buffers = [];
-    doc.on("data", buffers.push.bind(buffers));
-    doc.on("end", () => {
-      let pdfData = Buffer.concat(buffers);
-      res.writeHead(200, {
-        "Content-Type": "application/pdf",
-        "Content-Disposition": "attachment; filename=contrato.pdf",
-        "Content-Length": pdfData.length
-      });
-      res.end(pdfData);
-    });
-    doc.fontSize(12).text(contrato);
-    doc.end();
-  } catch (err) {
-    res.status(500).json({ error: "Erro ao gerar PDF" });
-  }
-});
-
 export default app;
