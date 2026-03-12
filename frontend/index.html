@@ -1,0 +1,549 @@
+<!DOCTYPE html>
+
+<html lang="pt-BR">
+
+<head>
+
+<meta charset="UTF-8" />
+
+<title>Gerador de Contratos IA</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+
+
+<style>
+
+body {
+
+  background: linear-gradient(135deg, #020617, #0f172a);
+
+  font-family: Inter, Arial, Helvetica, sans-serif;
+
+  color: #fff;
+
+  min-height: 100vh;
+
+  display: flex;
+
+  align-items: center;
+
+  justify-content: center;
+
+}
+
+
+
+.container {
+
+  width: 100%;
+
+  max-width: 860px;
+
+  background: #020617;
+
+  padding: 30px;
+
+  border-radius: 14px;
+
+  box-shadow: 0 30px 60px rgba(0,0,0,.6);
+
+}
+
+
+
+h2 {
+
+  margin-bottom: 10px;
+
+}
+
+
+
+textarea, input {
+
+  width: 100%;
+
+  padding: 12px;
+
+  margin-top: 12px;
+
+  border-radius: 8px;
+
+  border: 1px solid #1e293b;
+
+  background: #0f172a;
+
+  color: #fff;
+
+  font-size: 15px;
+
+}
+
+
+
+button {
+
+  width: 100%;
+
+  padding: 14px;
+
+  margin-top: 16px;
+
+  border-radius: 8px;
+
+  border: none;
+
+  font-size: 16px;
+
+  cursor: pointer;
+
+}
+
+
+
+.primary { background: #2563eb; }
+
+.secondary { background: #334155; }
+
+.success { background: #16a34a; }
+
+.whatsapp { background: #22c55e; }
+
+
+
+.step { display: none; }
+
+.step.active { display: block; }
+
+
+
+pre {
+
+  background: #020617;
+
+  border: 1px solid #1e293b;
+
+  padding: 20px;
+
+  border-radius: 10px;
+
+  max-height: 420px;
+
+  overflow-y: auto;
+
+  white-space: pre-wrap;
+
+  margin-top: 10px;
+
+}
+
+
+
+.actions {
+
+  display: flex;
+
+  gap: 12px;
+
+  flex-wrap: wrap;
+
+  margin-top: 10px;
+
+}
+
+
+
+/* 🔄 Loading */
+
+.loading {
+
+  display: flex;
+
+  align-items: center;
+
+  gap: 10px;
+
+  margin-top: 14px;
+
+  color: #93c5fd;
+
+}
+
+
+
+.spinner {
+
+  width: 22px;
+
+  height: 22px;
+
+  border: 3px solid #1e293b;
+
+  border-top: 3px solid #60a5fa;
+
+  border-radius: 50%;
+
+  animation: spin 1s linear infinite;
+
+}
+
+
+
+@keyframes spin {
+
+  to { transform: rotate(360deg); }
+
+}
+
+</style>
+
+</head>
+
+
+
+<body>
+
+<div class="container">
+
+
+
+  <!-- STEP 1 -->
+
+  <div id="step1" class="step active">
+
+    <h2>Descreva o contrato</h2>
+
+    <textarea id="descricao" placeholder="Ex: Pintura residencial, prazo de 45 dias, valor 20 mil em Santa Maria..."></textarea>
+
+    <button class="primary" onclick="enviarDescricao()">Continuar</button>
+
+
+
+    <div id="loading" class="loading" style="display:none">
+
+      <div class="spinner"></div>
+
+      <span>Gerando estrutura do contrato... (espere 15 segundos)</span>
+
+    </div>
+
+  </div>
+
+
+
+  <!-- STEP 2 -->
+
+  <div id="step2" class="step">
+
+    <h2>Preencha os dados</h2>
+
+    <div id="form"></div>
+
+    <button class="primary" onclick="gerarContrato()">Visualizar contrato</button>
+
+  </div>
+
+
+
+  <!-- STEP 3 -->
+
+  <div id="step3" class="step">
+
+    <h2>Contrato</h2>
+
+    <pre id="contratoFinal"></pre>
+
+
+
+    <div class="actions">
+
+      <button class="secondary" onclick="voltar()">Voltar</button>
+
+      <button class="success" onclick="baixarPDF()">Baixar PDF</button>
+
+      <button class="whatsapp" onclick="enviarWhats()">Enviar por WhatsApp</button>
+
+    </div>
+
+  </div>
+
+
+
+</div>
+
+
+
+<script>
+
+/* 🌐 Local ou produção */
+
+const BACKEND_URL =
+
+  location.hostname === "localhost" || location.hostname === ""
+
+    ? "http://localhost:3000"
+
+    : "https://teu-backend.onrender.com";
+
+
+
+let contratoBase = "";
+
+let campos = [];
+
+let contratoFinal = "";
+
+
+
+/* 🧭 Steps */
+
+function show(step) {
+
+  document.querySelectorAll(".step").forEach(s => s.classList.remove("active"));
+
+  document.getElementById(step).classList.add("active");
+
+}
+
+
+
+/* 💰 Moeda */
+
+function formatarMoeda(valor) {
+
+  const numero = Number(valor.replace(/\D/g, "")) / 100;
+
+  return numero.toLocaleString("pt-BR", {
+
+    style: "currency",
+
+    currency: "BRL"
+
+  });
+
+}
+
+
+
+/* 🆔 CPF / CNPJ */
+
+function formatarCpfCnpj(v) {
+
+  v = v.replace(/\D/g, "");
+
+  if (v.length <= 11) {
+
+    return v
+
+      .replace(/(\d{3})(\d)/, "$1.$2")
+
+      .replace(/(\d{3})(\d)/, "$1.$2")
+
+      .replace(/(\d{3})(\d{1,2})$/, "$1-$2");
+
+  }
+
+  return v
+
+    .replace(/^(\d{2})(\d)/, "$1.$2")
+
+    .replace(/^(\d{2})\.(\d{3})(\d)/, "$1.$2.$3")
+
+    .replace(/\.(\d{3})(\d)/, ".$1/$2")
+
+    .replace(/(\d{4})(\d)/, "$1-$2");
+
+}
+
+
+
+/* STEP 1 */
+
+async function enviarDescricao() {
+
+  const descricao = document.getElementById("descricao").value.trim();
+
+  if (!descricao) return alert("Descreva o contrato");
+
+
+
+  document.getElementById("loading").style.display = "flex";
+
+
+
+  const res = await fetch(`${BACKEND_URL}/gerar-contrato`, {
+
+    method: "POST",
+
+    headers: { "Content-Type": "application/json" },
+
+    body: JSON.stringify({ descricao })
+
+  });
+
+
+
+  const data = await res.json();
+
+  contratoBase = data.contrato;
+
+  campos = data.campos;
+
+
+
+  const form = document.getElementById("form");
+
+  form.innerHTML = "";
+
+
+
+  campos.forEach(c => {
+
+    const input = document.createElement("input");
+
+    input.id = c.id;
+
+    input.placeholder = c.label;
+
+
+
+    if (c.id === "valor") {
+
+      input.addEventListener("input", () => {
+
+        input.value = formatarMoeda(input.value);
+
+      });
+
+    }
+
+
+
+    if (c.id.includes("cpf_cnpj")) {
+
+      input.addEventListener("input", () => {
+
+        input.value = formatarCpfCnpj(input.value);
+
+      });
+
+    }
+
+
+
+    form.appendChild(input);
+
+  });
+
+
+
+  document.getElementById("loading").style.display = "none";
+
+  show("step2");
+
+}
+
+
+
+/* STEP 2 → 3 */
+
+function gerarContrato() {
+
+  contratoFinal = contratoBase;
+
+
+
+  campos.forEach(c => {
+
+    const valor = document.getElementById(c.id).value;
+
+    contratoFinal = contratoFinal.replaceAll(`{{${c.id}}}`, valor);
+
+  });
+
+
+
+  document.getElementById("contratoFinal").textContent = contratoFinal;
+
+  show("step3");
+
+}
+
+
+
+function voltar() {
+
+  show("step2");
+
+}
+
+
+
+/* PDF */
+
+async function baixarPDF() {
+
+  const res = await fetch(`${BACKEND_URL}/gerar-pdf`, {
+
+    method: "POST",
+
+    headers: { "Content-Type": "application/json" },
+
+    body: JSON.stringify({ contrato: contratoFinal })
+
+  });
+
+
+
+  const blob = await res.blob();
+
+
+
+  const url = window.URL.createObjectURL(blob);
+
+  const a = document.createElement("a");
+
+
+
+  a.href = url;
+
+  a.download = "contrato.pdf";
+
+  document.body.appendChild(a);
+
+  a.click();
+
+
+
+  a.remove();
+
+  window.URL.revokeObjectURL(url);
+
+}
+
+
+
+
+
+/* WhatsApp */
+
+function enviarWhats() {
+
+  const msg = encodeURIComponent(
+
+    "Segue o contrato para conferência."
+
+  );
+
+  window.open(`https://wa.me/?text=${msg}`, "_blank");
+
+}
+
+</script>
+
+
+
+</body>
+
+</html>
