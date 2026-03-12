@@ -6,7 +6,6 @@ import cors from "cors";
 import OpenAI from "openai";
 import PDFDocument from "pdfkit";
 
-const express = require('express');
 const app = express();
 const port = process.env.PORT || 3000;
 
