@@ -93,8 +93,7 @@ app.post("api/gerar-pdf", (req, res) => {
     console.error(err);
     res.status(500).json({ error: "Erro ao gerar PDF" });
   }
-  module.exports = app;
 
 });
 
-app.listen(port, () => console.log(`Servidor rodando na porta ${port}`));
+module.exports = app;
