@@ -93,6 +93,7 @@ app.post("/gerar-pdf", (req, res) => {
     console.error(err);
     res.status(500).json({ error: "Erro ao gerar PDF" });
   }
+  module.exports = app;
 
 });
 
