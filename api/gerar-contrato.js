@@ -71,7 +71,7 @@ Retorne SOMENTE o JSON:
 }`; // Seu prompt original aqui
 
     const completion = await openai.chat.completions.create({
-      model: "gpt-4o-mini",
+      model: "gpt-5.4",
       messages: [{ role: "user", content: prompt }],
       response_format: { type: "json_object" }
     });
