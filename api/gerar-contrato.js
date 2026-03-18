@@ -38,16 +38,6 @@ REGRAS OBRIGATÓRIAS:
 
 
 
-ASSINATURA (modelo obrigatório):
-
-Local e data: ________________________________________________
-
-CONTRATANTE: ________________________________________________
-
-CONTRADO: _________________________________________________
-
-
-
 Descrição fornecida pelo usuário:
 
 "${descricao}"
